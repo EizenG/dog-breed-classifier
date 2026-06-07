@@ -2,3 +2,6 @@
     remote = origin
 ['remote "origin"']
     url = https://dagshub.com/EizenG/dog-breed-classifier.dvc
+['remote "gdrive"']
+    url = gdrive://1TIR36aun-Gb6JL4M-0kSx_aFqHjLICuA
+    gdrive_acknowledge_abuse = true

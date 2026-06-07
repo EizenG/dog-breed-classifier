@@ -4,9 +4,10 @@ import tarfile
 import urllib.request
 from pathlib import Path
 
+import yaml
 from loguru import logger
 
-from dog_breed_classifier.config import RAW_DATA_DIR
+from dog_breed_classifier.config import PROJ_ROOT, RAW_DATA_DIR
 
 DATASET_URL = "http://vision.stanford.edu/aditya86/ImageNetDogs/images.tar"
 ARCHIVE_NAME = "images.tar"
@@ -72,6 +73,10 @@ def organize_by_breed(images_path: Path, output_path: Path) -> None:
         images_path: Dossier contenant les sous-dossiers par race (format ImageNet).
         output_path: Dossier de sortie avec un sous-dossier par race.
     """
+    if output_path.exists():
+        logger.info("Dossier breeds déjà présent, organisation ignorée.")
+        return
+
     output_path.mkdir(parents=True, exist_ok=True)
     breed_dirs = sorted([d for d in images_path.iterdir() if d.is_dir()])
     logger.info(f"{len(breed_dirs)} races trouvées dans le dataset.")
@@ -88,12 +93,49 @@ def organize_by_breed(images_path: Path, output_path: Path) -> None:
         logger.info(f"  {breed_name} : {len(images)} images")
 
 
+def filter_breeds(breeds_path: Path, output_path: Path, params: dict) -> None:
+    """Copie uniquement les races sélectionnées dans output_path.
+
+    Args:
+        breeds_path: Dossier contenant toutes les races organisées.
+        output_path: Dossier de sortie avec les 10 races sélectionnées.
+        params: Paramètres du projet (liste des races).
+    """
+    if output_path.exists():
+        logger.info("Dossier selected déjà présent, filtrage ignoré.")
+        return
+
+    races = params["data"]["races"]
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    for race in races:
+        race_src = breeds_path / race
+        if not race_src.exists():
+            logger.warning(f"Race introuvable : {race}, ignorée.")
+            continue
+
+        race_dest = output_path / race
+        shutil.copytree(race_src, race_dest)
+        logger.info(f"  {race} : {len(list(race_dest.glob('*.jpg')))} images")
+
+
 def main() -> None:
-    """Pipeline de téléchargement et d'organisation des données brutes."""
-    archive = download_dataset(RAW_DATA_DIR)
-    images_path = extract_dataset(archive, RAW_DATA_DIR)
-    organize_by_breed(images_path, RAW_DATA_DIR / "breeds")
-    logger.info(f"Données disponibles dans {RAW_DATA_DIR / 'breeds'}")
+    """Téléchargement, organisation et filtrage des races sélectionnées."""
+    params_path = PROJ_ROOT / "params.yaml"
+    with open(params_path) as f:
+        params = yaml.safe_load(f)
+
+    breeds_path = RAW_DATA_DIR / "breeds"
+
+    if not breeds_path.exists():
+        archive = download_dataset(RAW_DATA_DIR)
+        images_path = extract_dataset(archive, RAW_DATA_DIR)
+        organize_by_breed(images_path, breeds_path)
+    else:
+        logger.info("Dossier breeds déjà présent, téléchargement et extraction ignorés.")
+
+    filter_breeds(breeds_path, RAW_DATA_DIR / "selected", params)
+    logger.info(f"Données filtrées disponibles dans {RAW_DATA_DIR / 'selected'}")
 
 
 if __name__ == "__main__":
