@@ -1,0 +1,12 @@
+stages:
+  features:
+    cmd: python -m dog_breed_classifier.features
+    deps:
+      - dog_breed_classifier/features.py
+      - data/raw/selected
+      - params.yaml
+    params:
+      - data.races
+      - data.split
+    outs:
+      - data/processed
