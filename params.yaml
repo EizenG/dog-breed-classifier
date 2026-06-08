@@ -10,3 +10,7 @@ data:
     - Old_English_sheepdog
     - Doberman
     - standard_poodle
+  split:
+    train: 0.70
+    val: 0.15
+    test: 0.15
