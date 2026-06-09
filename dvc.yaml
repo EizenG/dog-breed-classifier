@@ -9,4 +9,5 @@ stages:
       - data.races
       - data.split
     outs:
-      - data/processed
+      - data/processed:
+          push: false
