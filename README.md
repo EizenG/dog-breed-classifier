@@ -97,10 +97,12 @@ Le token DagsHub se génère depuis : **DagsHub → Settings → Tokens**.
 Les données brutes (10 races sélectionnées, ~1 600 images) sont versionnées sur DagsHub via DVC.
 
 ```bash
-dvc pull
+dvc pull data/raw/selected.dvc
 ```
 
-Cette commande télécharge `data/raw/selected/` depuis DagsHub. Les credentials `.env` doivent être configurés au préalable.
+Cette commande télécharge uniquement `data/raw/selected/` depuis DagsHub. Les credentials `.env` doivent être configurés au préalable.
+
+> `dvc pull` sans argument tente aussi de récupérer les outputs du pipeline (`data/processed/`), qui ne sont pas stockés sur DagsHub — utiliser la commande ciblée ci-dessus.
 
 ### 2. Reproduire le pipeline
 

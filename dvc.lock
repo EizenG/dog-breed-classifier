@@ -1,0 +1,41 @@
+schema: '2.0'
+stages:
+  features:
+    cmd: python -m dog_breed_classifier.features
+    deps:
+    - path: data/raw/selected
+      hash: md5
+      md5: c3607054f153defeef046379567f2f55.dir
+      size: 72513252
+      nfiles: 1635
+    - path: dog_breed_classifier/features.py
+      hash: md5
+      md5: c182008b009dbf42c229598d3c9cc580
+      size: 2988
+    - path: params.yaml
+      hash: md5
+      md5: 3b899c64c6276530c601acd597714943
+      size: 279
+    params:
+      params.yaml:
+        data.races:
+        - Chihuahua
+        - German_shepherd
+        - golden_retriever
+        - Siberian_husky
+        - pug
+        - Rottweiler
+        - French_bulldog
+        - Old_English_sheepdog
+        - Doberman
+        - standard_poodle
+        data.split:
+          train: 0.7
+          val: 0.15
+          test: 0.15
+    outs:
+    - path: data/processed
+      hash: md5
+      md5: 338bb5b91714b5815ab14d00a2522023.dir
+      size: 72513252
+      nfiles: 1635
