@@ -86,23 +86,13 @@ jobs:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_USERNAME: ba-ameth
         run: |
-          git config user.email "github-actions@github.com"
-          git config user.name "GitHub Actions"
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "GitHub Actions"
           git clone https://$HF_USERNAME:$HF_TOKEN@huggingface.co/spaces/$HF_USERNAME/dog-breed-classifier-ui /tmp/hf-ui
           cp app.py /tmp/hf-ui/
           cp -r pages /tmp/hf-ui/
           cp requirements_streamlit.txt /tmp/hf-ui/requirements.txt
-          cat > /tmp/hf-ui/README.md << 'EOF'
-          ---
-          title: Dog Breed Classifier UI
-          emoji: 🐕
-          colorFrom: blue
-          colorTo: green
-          sdk: streamlit
-          app_file: app.py
-          pinned: false
-          ---
-          EOF
+          printf -- '---\ntitle: Dog Breed Classifier UI\nemoji: 🐕\ncolorFrom: blue\ncolorTo: green\nsdk: streamlit\napp_file: app.py\npinned: false\n---\n' > /tmp/hf-ui/README.md
           cd /tmp/hf-ui
           git add -A
           git diff --staged --quiet || (git commit -m "deploy: update UI" && git push)
