@@ -71,4 +71,4 @@ jobs:
           git config user.email "github-actions@github.com"
           git config user.name "GitHub Actions"
           git remote add space https://$HF_USERNAME:$HF_TOKEN@huggingface.co/spaces/$HF_USERNAME/dog-breed-classifier
-          git push space main --force
+          git push space HEAD:main --force
