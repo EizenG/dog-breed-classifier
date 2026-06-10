@@ -27,6 +27,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY api/           api/
 COPY dog_breed_classifier/ dog_breed_classifier/
 COPY params.yaml    .
+COPY reports/reference_features.csv reports/reference_features.csv
 
 # Répertoires montés en volume au runtime (models/ et reports/)
 RUN mkdir -p models reports/drift

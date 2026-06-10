@@ -4,6 +4,7 @@
 data/
 models/
 reports/
+!reports/reference_features.csv
 notebooks/
 tests/
 dashboard/
