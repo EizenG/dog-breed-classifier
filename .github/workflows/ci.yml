@@ -2,7 +2,7 @@ name: CI/CD
 
 on:
   push:
-    branches: [main, develop, "feature/ci-cd"]
+    branches: [main, develop]
   pull_request:
     branches: [main, develop]
 
@@ -66,6 +66,8 @@ jobs:
           git config user.email "github-actions@github.com"
           git config user.name "GitHub Actions"
           git remote add space https://$HF_USERNAME:$HF_TOKEN@huggingface.co/spaces/$HF_USERNAME/dog-breed-classifier
+          git rm -rf --cached reports/ 2>/dev/null || true
+          git commit -m "ci: exclude reports binaries from HF deploy" --allow-empty
           git push space HEAD:main --force
 
   deploy-ui:
