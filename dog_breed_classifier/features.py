@@ -1,9 +1,11 @@
-"""Split stratifié du dataset et organisation pour l'entraînement."""
+"""Split stratifié du dataset, organisation et extraction de features visuelles."""
 import shutil
 from pathlib import Path
 
+import numpy as np
 import yaml
 from loguru import logger
+from PIL import Image, ImageStat
 from sklearn.model_selection import train_test_split
 
 from dog_breed_classifier.config import PROCESSED_DATA_DIR, PROJ_ROOT, RAW_DATA_DIR
@@ -58,6 +60,30 @@ def split_and_copy(
             dest_dir = output_path / split_name / label
             dest_dir.mkdir(parents=True, exist_ok=True)
             shutil.copy2(img_path, dest_dir / img_path.name)
+
+
+def extract_visual_features(image: Image.Image) -> dict:
+    """Extrait brightness, contrast, saturation et canaux RGB d'une image PIL.
+
+    Colonnes cohérentes avec reports/reference_features.csv pour Evidently.
+    """
+    rgb = image.convert("RGB")
+    stat = ImageStat.Stat(rgb)
+    r_mean, g_mean, b_mean = [v / 255.0 for v in stat.mean]
+    brightness = (r_mean + g_mean + b_mean) / 3
+    contrast = sum(stat.stddev) / (3 * 255.0)
+
+    hsv_arr = np.array(image.convert("HSV"), dtype=np.float32)
+    saturation = float(hsv_arr[:, :, 1].mean()) / 255.0
+
+    return {
+        "brightness": round(brightness, 4),
+        "contrast": round(contrast, 4),
+        "saturation": round(saturation, 4),
+        "R": round(r_mean, 4),
+        "G": round(g_mean, 4),
+        "B": round(b_mean, 4),
+    }
 
 
 def main() -> None:

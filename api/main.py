@@ -1,6 +1,7 @@
 """API FastAPI — classification de races de chiens."""
 import csv
 import io
+import json
 import os
 from contextlib import asynccontextmanager
 
@@ -8,76 +9,22 @@ import numpy as np
 import yaml
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from loguru import logger
-from PIL import Image, ImageStat
+from PIL import Image
 from pydantic import BaseModel
 
-from dog_breed_classifier.config import MODELS_DIR, PROJ_ROOT, REPORTS_DIR
+from dog_breed_classifier.config import PROJ_ROOT, REPORTS_DIR
+from dog_breed_classifier.features import extract_visual_features
+from dog_breed_classifier.modeling.predict import load_model, preprocess
+from dog_breed_classifier.monitoring import DRIFT_REPORTS_DIR, run_drift_report
 
-PARAMS_PATH = PROJ_ROOT / "params.yaml"
 PRODUCTION_FEATURES_CSV = REPORTS_DIR / "production_features.csv"
-IMG_SIZE = (224, 224)
 
-with open(PARAMS_PATH) as f:
+with open(PROJ_ROOT / "params.yaml") as f:
     _params = yaml.safe_load(f)
 BREEDS: list[str] = _params["data"]["races"]
+IMG_SIZE: tuple[int, int] = tuple(_params["model"]["img_size"])
 
 model = None
-
-
-def _load_model():
-    """Charge le modèle depuis MLflow Model Registry, fallback sur fichier local."""
-    mlflow_uri = os.getenv("MLFLOW_TRACKING_URI")
-    if mlflow_uri:
-        try:
-            import mlflow
-            import mlflow.keras
-            mlflow.set_tracking_uri(mlflow_uri)
-            model_name = os.getenv("MLFLOW_MODEL_NAME", "DogBreedClassifier")
-            model_stage = os.getenv("MLFLOW_MODEL_STAGE", "Production")
-            loaded = mlflow.keras.load_model(f"models:/{model_name}/{model_stage}")
-            logger.info("Modèle chargé depuis MLflow Model Registry.")
-            return loaded
-        except Exception as e:
-            logger.warning(f"MLflow indisponible ({e}), bascule sur fichier local.")
-
-    keras_files = sorted(MODELS_DIR.glob("*.keras"))
-    if keras_files:
-        import tensorflow as tf
-        loaded = tf.keras.models.load_model(keras_files[-1])
-        logger.info(f"Modèle chargé depuis fichier local : {keras_files[-1].name}")
-        return loaded
-
-    raise RuntimeError("Aucun modèle disponible (ni MLflow ni fichier .keras local).")
-
-
-def _preprocess(image: Image.Image) -> np.ndarray:
-    """Redimensionne et normalise une image PIL pour l'inférence."""
-    image = image.convert("RGB").resize(IMG_SIZE)
-    arr = np.array(image, dtype=np.float32) / 255.0
-    return np.expand_dims(arr, axis=0)
-
-
-def _extract_features(image: Image.Image) -> dict:
-    """Extrait les features visuelles utilisées par Evidently pour le drift."""
-    rgb = image.convert("RGB").resize(IMG_SIZE)
-    stat = ImageStat.Stat(rgb)
-    r_mean, g_mean, b_mean = stat.mean
-    brightness = sum(stat.mean) / 3
-    contrast = sum(stat.stddev) / 3
-
-    # Saturation calculée manuellement depuis les moyennes RGB normalisées
-    r, g, b = r_mean / 255.0, g_mean / 255.0, b_mean / 255.0
-    cmax, cmin = max(r, g, b), min(r, g, b)
-    saturation = (cmax - cmin) / cmax if cmax > 0 else 0.0
-
-    return {
-        "brightness": round(brightness, 4),
-        "contrast": round(contrast, 4),
-        "saturation": round(saturation, 4),
-        "r_mean": round(r_mean, 4),
-        "g_mean": round(g_mean, 4),
-        "b_mean": round(b_mean, 4),
-    }
 
 
 def _log_production_features(features: dict) -> None:
@@ -95,7 +42,7 @@ def _log_production_features(features: dict) -> None:
 async def lifespan(app: FastAPI):
     global model
     try:
-        model = _load_model()
+        model = load_model()
     except RuntimeError as e:
         logger.warning(f"Modèle non chargé au démarrage : {e}")
     yield
@@ -125,6 +72,21 @@ class BreedsResponse(BaseModel):
     count: int
 
 
+class FeatureDriftStats(BaseModel):
+    drift_detected: bool
+    stattest: str
+    p_value: float
+
+
+class DriftSummaryResponse(BaseModel):
+    timestamp: str
+    production_rows: int
+    dataset_drift_detected: bool
+    drifted_features: int
+    total_features: int
+    per_feature: dict[str, FeatureDriftStats]
+
+
 @app.get("/health", response_model=HealthResponse, summary="Statut de l'API")
 def health():
     return {"status": "ok", "model_loaded": model is not None}
@@ -149,13 +111,13 @@ async def predict(file: UploadFile = File(...)):
     except Exception:
         raise HTTPException(status_code=400, detail="Image invalide ou corrompue.")
 
-    arr = _preprocess(image)
+    arr = preprocess(image, IMG_SIZE)
     preds = model.predict(arr, verbose=0)[0]
 
     top_indices = np.argsort(preds)[::-1][:3]
     top_3 = [{"breed": BREEDS[i], "confidence": round(float(preds[i]), 4)} for i in top_indices]
 
-    features = _extract_features(image)
+    features = extract_visual_features(image)
     _log_production_features(features)
 
     return {
@@ -163,3 +125,54 @@ async def predict(file: UploadFile = File(...)):
         "confidence": top_3[0]["confidence"],
         "top_3": top_3,
     }
+
+
+def _latest_drift_summary() -> dict | None:
+    """Retourne le contenu du dernier fichier drift_summary_*.json, ou None."""
+    if not DRIFT_REPORTS_DIR.exists():
+        return None
+    summaries = sorted(DRIFT_REPORTS_DIR.glob("drift_summary_*.json"))
+    if not summaries:
+        return None
+    with open(summaries[-1]) as f:
+        return json.load(f)
+
+
+@app.get(
+    "/drift/summary",
+    response_model=DriftSummaryResponse,
+    summary="Dernier résumé de drift (cache)",
+)
+def drift_summary():
+    """Retourne le dernier rapport de drift calculé sans relancer l'analyse."""
+    summary = _latest_drift_summary()
+    if summary is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Aucun rapport de drift disponible. Appelle POST /drift/run d'abord.",
+        )
+    return summary
+
+
+@app.post(
+    "/drift/run",
+    response_model=DriftSummaryResponse,
+    summary="Déclenche une analyse de drift",
+)
+def drift_run(min_rows: int = 10):
+    """Lance une analyse Evidently et retourne le résumé.
+
+    - **min_rows** : nombre minimum de requêtes de production requises (défaut : 10).
+    """
+    try:
+        run_drift_report(min_production_rows=min_rows, log_to_mlflow=False)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        logger.error(f"Erreur lors du calcul du drift : {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur analyse drift : {e}")
+
+    summary = _latest_drift_summary()
+    if summary is None:
+        raise HTTPException(status_code=500, detail="Rapport généré mais introuvable.")
+    return summary
