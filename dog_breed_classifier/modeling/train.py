@@ -1,13 +1,15 @@
 """Entraînement des modèles avec optimisation Optuna et tracking MLflow."""
+from datetime import datetime
 import json
 import os
 import subprocess
 import time
-from datetime import datetime
 from typing import Optional
 
 import matplotlib
+
 matplotlib.use("Agg")
+from loguru import logger
 import matplotlib.pyplot as plt
 import mlflow
 import mlflow.tensorflow
@@ -16,9 +18,14 @@ import optuna
 import tensorflow as tf
 import typer
 import yaml
-from loguru import logger
 
-from dog_breed_classifier.config import FIGURES_DIR, MODELS_DIR, PROCESSED_DATA_DIR, PROJ_ROOT, REPORTS_DIR
+from dog_breed_classifier.config import (
+    FIGURES_DIR,
+    MODELS_DIR,
+    PROCESSED_DATA_DIR,
+    PROJ_ROOT,
+    REPORTS_DIR,
+)
 
 app = typer.Typer()
 AUTOTUNE = tf.data.AUTOTUNE
