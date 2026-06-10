@@ -1,0 +1,12 @@
+services:
+  api:
+    build: .
+    ports:
+      - "7860:7860"
+    volumes:
+      - ./reports:/app/reports      # reference_features.csv + production_features.csv + drift/
+    env_file:
+      - .env                        # MLFLOW_TRACKING_URI, DAGSHUB_TOKEN, MLFLOW_MODEL_NAME, etc.
+    environment:
+      - PORT=7860
+    restart: unless-stopped

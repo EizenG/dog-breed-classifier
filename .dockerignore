@@ -1,0 +1,17 @@
+.git
+.dvc
+.env
+data/
+models/
+reports/
+notebooks/
+tests/
+dashboard/
+docs/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+*.keras
+*.dvc

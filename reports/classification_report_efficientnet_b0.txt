@@ -1,0 +1,16 @@
+                      precision    recall  f1-score   support
+
+           Chihuahua       0.95      0.91      0.93        23
+     German_shepherd       1.00      0.87      0.93        23
+    golden_retriever       0.92      0.96      0.94        24
+      Siberian_husky       0.96      1.00      0.98        22
+                 pug       1.00      1.00      1.00        26
+          Rottweiler       0.88      1.00      0.94        22
+      French_bulldog       1.00      0.97      0.98        29
+Old_English_sheepdog       0.96      0.96      0.96        23
+            Doberman       0.97      0.97      0.97        30
+     standard_poodle       1.00      1.00      1.00        24
+
+            accuracy                           0.96       246
+           macro avg       0.96      0.96      0.96       246
+        weighted avg       0.97      0.96      0.96       246

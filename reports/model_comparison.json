@@ -1,0 +1,20 @@
+[
+  {
+    "model": "cnn_scratch",
+    "test_accuracy": 0.10569106042385101,
+    "test_loss": 2.3605568408966064,
+    "macro_f1": 0.03142349105996246
+  },
+  {
+    "model": "efficientnet_b0",
+    "test_accuracy": 0.9634146094322205,
+    "test_loss": 0.17828169465065002,
+    "macro_f1": 0.9621933938368663
+  },
+  {
+    "model": "inception_v3",
+    "test_accuracy": 0.9796748161315918,
+    "test_loss": 0.09682537615299225,
+    "macro_f1": 0.9792700953425534
+  }
+]
