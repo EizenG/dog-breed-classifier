@@ -187,3 +187,7 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Modèles entraînés — versionnés via MLflow/DagsHub, pas dans git
+/models/**
+!/models/.gitkeep
