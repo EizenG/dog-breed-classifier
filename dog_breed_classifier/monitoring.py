@@ -2,14 +2,16 @@
 
 Compare les features visuelles de production avec la distribution de référence
 (calculée sur le dataset d'entraînement).
+
+Note: nécessite evidently>=0.7.x — imports via evidently.legacy.report et evidently.presets.
 """
-from datetime import datetime
 import json
 import os
+from datetime import datetime
 from pathlib import Path
 
-from loguru import logger
 import pandas as pd
+from loguru import logger
 
 from dog_breed_classifier.config import REPORTS_DIR
 
@@ -43,18 +45,10 @@ def run_drift_report(
     min_production_rows: int = 50,
     log_to_mlflow: bool = False,
 ) -> Path:
-    """Génère un rapport HTML de drift et retourne son chemin.
-
-    Args:
-        min_production_rows: Nombre minimum de requêtes avant d'analyser le drift.
-        log_to_mlflow: Si True, logue le rapport dans le run MLflow actif.
-
-    Returns:
-        Chemin vers le rapport HTML généré.
-    """
-    from evidently import ColumnMapping
-    from evidently.metric_preset import DataDriftPreset
-    from evidently.report import Report
+    """Génère un rapport HTML de drift et retourne son chemin."""
+    # evidently 0.7.x : Report et DataDriftPreset tous les deux dans legacy
+    from evidently.legacy.metric_preset import DataDriftPreset  # noqa: PLC0415
+    from evidently.legacy.report import Report  # noqa: PLC0415
 
     ref, prod = _load_data()
 
@@ -65,14 +59,8 @@ def run_drift_report(
             "Le rapport peut ne pas être représentatif."
         )
 
-    column_mapping = ColumnMapping(
-        numerical_features=FEATURE_COLUMNS,
-        target=None,
-        prediction=None,
-    )
-
     report = Report(metrics=[DataDriftPreset()])
-    report.run(reference_data=ref, current_data=prod, column_mapping=column_mapping)
+    report.run(reference_data=ref, current_data=prod, column_mapping=None)
 
     DRIFT_REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -129,7 +117,7 @@ def _extract_drift_summary(report) -> dict:
 def _log_to_mlflow(report_path: Path, summary: dict) -> None:
     """Logue le rapport et les métriques de drift dans le run MLflow actif."""
     try:
-        import mlflow
+        import mlflow  # noqa: PLC0415
 
         mlflow_uri = os.getenv("MLFLOW_TRACKING_URI")
         if mlflow_uri:

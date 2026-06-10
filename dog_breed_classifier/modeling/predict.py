@@ -1,8 +1,8 @@
 """Chargement du modèle depuis MLflow Model Registry et preprocessing pour l'inférence."""
 import os
 
-from loguru import logger
 import numpy as np
+from loguru import logger
 from PIL import Image
 
 
@@ -15,7 +15,7 @@ def load_model():
         MLFLOW_MODEL_ALIAS    — alias cible (défaut: production)
     """
     import mlflow
-    import mlflow.keras
+    import mlflow.tensorflow
 
     tracking_uri = os.getenv("MLFLOW_TRACKING_URI")
     if not tracking_uri:
@@ -30,7 +30,7 @@ def load_model():
 
     model_uri = f"models:/{model_name}@{model_alias}"
     logger.info(f"Chargement depuis MLflow Registry : {model_uri}")
-    model = mlflow.keras.load_model(model_uri)
+    model = mlflow.tensorflow.load_model(model_uri)
     logger.success(f"Modèle chargé : {model_name}@{model_alias}")
     return model
 

@@ -71,3 +71,38 @@ jobs:
           git config user.name "GitHub Actions"
           git remote add space https://$HF_USERNAME:$HF_TOKEN@huggingface.co/spaces/$HF_USERNAME/dog-breed-classifier
           git push space HEAD:main --force
+
+  deploy-ui:
+    name: Deploy UI HF Spaces
+    needs: docker
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Push UI to HF Spaces
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_USERNAME: ba-ameth
+        run: |
+          git config user.email "github-actions@github.com"
+          git config user.name "GitHub Actions"
+          git clone https://$HF_USERNAME:$HF_TOKEN@huggingface.co/spaces/$HF_USERNAME/dog-breed-classifier-ui /tmp/hf-ui
+          cp app.py /tmp/hf-ui/
+          cp -r pages /tmp/hf-ui/
+          cp requirements_streamlit.txt /tmp/hf-ui/requirements.txt
+          cat > /tmp/hf-ui/README.md << 'EOF'
+          ---
+          title: Dog Breed Classifier UI
+          emoji: 🐕
+          colorFrom: blue
+          colorTo: green
+          sdk: streamlit
+          app_file: app.py
+          pinned: false
+          ---
+          EOF
+          cd /tmp/hf-ui
+          git add -A
+          git diff --staged --quiet || (git commit -m "deploy: update UI" && git push)
