@@ -41,6 +41,7 @@ def _log_production_features(features: dict) -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global model
+    model = None
     try:
         model = load_model()
     except Exception as e:

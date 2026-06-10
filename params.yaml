@@ -17,3 +17,40 @@ data:
 
 model:
   img_size: [224, 224]
+  seed: 42
+  augmentation:
+    rotation: 0.15
+    zoom: 0.2
+    translation: 0.1
+    brightness: 0.2
+
+training:
+  phase1:
+    epochs: 25
+    learning_rate: 1.0e-4
+  phase2:
+    epochs: 30
+  cnn_scratch:
+    epochs: 50
+  early_stopping:
+    patience: 5
+  reduce_lr:
+    factor: 0.5
+    patience: 3
+  unfreeze:
+    efficientnet_top_layers: 20
+    inception_from_layer: 249
+
+optuna:
+  n_trials: 10
+  search_space:
+    learning_rate:
+      min: 1.0e-5
+      max: 1.0e-4
+    dropout_rate:
+      min: 0.2
+      max: 0.4
+    batch_size: [16, 32]
+    l2_reg:
+      min: 1.0e-4
+      max: 1.0e-3

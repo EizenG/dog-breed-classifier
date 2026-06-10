@@ -1,4 +1,5 @@
 """Téléchargement et organisation du Stanford Dogs Dataset."""
+import hashlib
 from pathlib import Path
 import shutil
 import tarfile
@@ -117,6 +118,34 @@ def filter_breeds(breeds_path: Path, output_path: Path, params: dict) -> None:
         race_dest = output_path / race
         shutil.copytree(race_src, race_dest)
         logger.info(f"  {race} : {len(list(race_dest.glob('*.jpg')))} images")
+
+
+def remove_duplicates(root: Path) -> int:
+    """Supprime les images dupliquées (même contenu, hash MD5 identique) sous root.
+
+    Parcourt récursivement tous les .jpg. Pour chaque hash déjà vu, supprime
+    le fichier en double et conserve la première occurrence rencontrée.
+
+    Args:
+        root: Dossier racine à analyser (ex : data/raw/selected).
+
+    Returns:
+        Nombre de fichiers supprimés.
+    """
+    seen: dict[str, Path] = {}
+    removed = 0
+
+    for img_path in sorted(root.rglob("*.jpg")):
+        digest = hashlib.md5(img_path.read_bytes()).hexdigest()
+        if digest in seen:
+            logger.info(f"Doublon supprimé : {img_path} (identique à {seen[digest]})")
+            img_path.unlink()
+            removed += 1
+        else:
+            seen[digest] = img_path
+
+    logger.info(f"remove_duplicates : {removed} doublon(s) supprimé(s) sur {len(seen) + removed} images.")
+    return removed
 
 
 def main() -> None:
