@@ -1,10 +1,10 @@
 """Split stratifié du dataset et organisation pour l'entraînement."""
-import shutil
 from pathlib import Path
+import shutil
 
-import yaml
 from loguru import logger
 from sklearn.model_selection import train_test_split
+import yaml
 
 from dog_breed_classifier.config import PROCESSED_DATA_DIR, PROJ_ROOT, RAW_DATA_DIR
 

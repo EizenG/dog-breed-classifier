@@ -1,11 +1,11 @@
 """Téléchargement et organisation du Stanford Dogs Dataset."""
+from pathlib import Path
 import shutil
 import tarfile
 import urllib.request
-from pathlib import Path
 
-import yaml
 from loguru import logger
+import yaml
 
 from dog_breed_classifier.config import PROJ_ROOT, RAW_DATA_DIR
 
