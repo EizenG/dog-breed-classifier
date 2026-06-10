@@ -1,0 +1,74 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main, develop, feature/ci-cd]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  quality:
+    name: Lint & Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Poetry
+        run: pip install poetry poetry-plugin-export
+
+      - name: Install dependencies
+        run: poetry install --with dev
+
+      - name: Lint - Ruff
+        run: poetry run ruff check dog_breed_classifier/ api/
+
+      # - name: Tests - Pytest
+      #   run: poetry run pytest tests/ -v --cov=api --cov=dog_breed_classifier
+      #   env:
+      #     MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
+      #     MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
+      #     MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
+
+  docker:
+    name: Docker Build
+    needs: quality
+    runs-on: ubuntu-latest
+#    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t dog-breed-classifier .
+
+      - name: Test /health
+        run: |
+          docker run -d -p 7860:7860 --name test-api dog-breed-classifier
+          timeout 60 bash -c 'until curl -s http://localhost:7860/health; do sleep 2; done'
+
+  deploy:
+    name: Deploy HF Spaces
+    needs: docker
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Push to HF Spaces
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_USERNAME: ba-ameth
+        run: |
+          git config user.email "github-actions@github.com"
+          git config user.name "GitHub Actions"
+          git remote add space https://$HF_USERNAME:$HF_TOKEN@huggingface.co/spaces/$HF_USERNAME/dog-breed-classifier
+          git push space main --force
