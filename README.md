@@ -1,3 +1,14 @@
+---
+title: Dog Breed Classifier
+emoji: 🐶
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
+
 # Dog Breed Classifier
 
 ![Python](https://img.shields.io/badge/Python-3.11%2B-blue)
