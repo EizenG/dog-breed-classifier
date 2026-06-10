@@ -11,3 +11,31 @@ stages:
     outs:
       - data/processed:
           push: false
+
+  train:
+    cmd: python -m dog_breed_classifier.modeling.train
+    deps:
+      - dog_breed_classifier/modeling/train.py
+      - data/processed
+      - params.yaml
+    params:
+      - data.races
+      - model
+      - training
+      - optuna
+    outs:
+      - reports/run_ids.json:
+          cache: false
+
+  evaluate:
+    cmd: python -m dog_breed_classifier.modeling.evaluate
+    deps:
+      - dog_breed_classifier/modeling/evaluate.py
+      - reports/run_ids.json
+      - data/processed/test
+      - params.yaml
+    params:
+      - data.races
+    metrics:
+      - reports/model_comparison.json:
+          cache: false

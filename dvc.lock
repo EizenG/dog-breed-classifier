@@ -10,12 +10,12 @@ stages:
       nfiles: 1635
     - path: dog_breed_classifier/features.py
       hash: md5
-      md5: c182008b009dbf42c229598d3c9cc580
-      size: 2988
+      md5: c42ff120acbd2f7ea9ab966bf412b1be
+      size: 3968
     - path: params.yaml
       hash: md5
-      md5: 3b899c64c6276530c601acd597714943
-      size: 279
+      md5: 27b82158452131d1c33637d2584af8b4
+      size: 937
     params:
       params.yaml:
         data.races:
