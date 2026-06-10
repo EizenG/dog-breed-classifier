@@ -31,6 +31,10 @@ COPY params.yaml    .
 # Répertoires montés en volume au runtime (models/ et reports/)
 RUN mkdir -p models reports/drift
 
+RUN useradd -m -u 1000 user && chown -R user:user /app
+USER user
+ENV PATH="/home/user/.local/bin:$PATH"
+
 ENV PORT=7860
 ENV PYTHONUNBUFFERED=1
 
