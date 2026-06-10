@@ -3,9 +3,9 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /build
 
-RUN pip install --no-cache-dir poetry==2.1.3 poetry-plugin-export
+RUN pip install --no-cache-dir poetry==2.4.1 poetry-plugin-export
 
-COPY pyproject.toml poetry.lock* ./
+COPY pyproject.toml poetry.lock* LICENSE* ./
 
 RUN poetry export -f requirements.txt --output requirements.txt --without-hashes --only main
 
