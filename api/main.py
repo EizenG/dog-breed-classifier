@@ -43,7 +43,7 @@ async def lifespan(app: FastAPI):
     global model
     try:
         model = load_model()
-    except RuntimeError as e:
+    except Exception as e:
         logger.warning(f"Modèle non chargé au démarrage : {e}")
     yield
 
