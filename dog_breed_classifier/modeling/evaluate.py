@@ -5,17 +5,24 @@ from pathlib import Path
 from typing import Optional
 
 import matplotlib
+
 matplotlib.use("Agg")
+from loguru import logger
 import matplotlib.pyplot as plt
 import mlflow
 import numpy as np
+from sklearn.metrics import classification_report, confusion_matrix
 import tensorflow as tf
 import typer
 import yaml
-from loguru import logger
-from sklearn.metrics import classification_report, confusion_matrix
 
-from dog_breed_classifier.config import FIGURES_DIR, MODELS_DIR, PROCESSED_DATA_DIR, PROJ_ROOT, REPORTS_DIR
+from dog_breed_classifier.config import (
+    FIGURES_DIR,
+    MODELS_DIR,
+    PROCESSED_DATA_DIR,
+    PROJ_ROOT,
+    REPORTS_DIR,
+)
 
 app = typer.Typer()
 AUTOTUNE = tf.data.AUTOTUNE
@@ -146,7 +153,6 @@ def main(
 ):
     """Évalue les modèles sur le test set et logue les résultats dans MLflow."""
     params = load_params()
-    races = params["data"]["races"]
     mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", ""))
 
     ids_path = run_ids_path or (REPORTS_DIR / "run_ids.json")
