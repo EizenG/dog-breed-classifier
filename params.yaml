@@ -14,3 +14,6 @@ data:
     train: 0.70
     val: 0.15
     test: 0.15
+
+model:
+  img_size: [224, 224]

@@ -2,7 +2,7 @@ name: CI/CD
 
 on:
   push:
-    branches: [main, develop, feature/ci-cd]
+    branches: [main, develop, "feature/ci-cd"]
   pull_request:
     branches: [main, develop]
 
@@ -38,7 +38,6 @@ jobs:
     name: Docker Build
     needs: quality
     runs-on: ubuntu-latest
-#    if: github.ref == 'refs/heads/main'
 
     steps:
       - uses: actions/checkout@v4
