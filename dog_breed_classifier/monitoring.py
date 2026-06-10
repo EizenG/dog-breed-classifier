@@ -5,13 +5,13 @@ Compare les features visuelles de production avec la distribution de référence
 
 Note: nécessite evidently>=0.7.x — imports via evidently.legacy.report et evidently.presets.
 """
+from datetime import datetime
 import json
 import os
-from datetime import datetime
 from pathlib import Path
 
-import pandas as pd
 from loguru import logger
+import pandas as pd
 
 from dog_breed_classifier.config import REPORTS_DIR
 

@@ -1,8 +1,8 @@
 """Chargement du modèle depuis MLflow Model Registry et preprocessing pour l'inférence."""
 import os
 
-import numpy as np
 from loguru import logger
+import numpy as np
 from PIL import Image
 
 
