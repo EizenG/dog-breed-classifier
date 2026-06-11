@@ -12,6 +12,17 @@ Projet MLOps — cours Mously DIAW.
 
 ---
 
+## LIEN
+
+### Streamlit (UI)
+https://ba-ameth-dog-breed-classifier-ui.hf.space/
+
+### Documentation de l'API
+https://ba-ameth-dog-breed-classifier.hf.space/docs
+
+### MLflow Tracking (DagsHub)
+https://dagshub.com/EizenG/dog-breed-classifier.mlflow
+
 ## Résultats
 
 | Modèle | Test Accuracy | Test Loss | Macro F1 |
