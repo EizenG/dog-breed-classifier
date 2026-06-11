@@ -1,3 +1,14 @@
+---
+title: Dog Breed Classifier
+emoji: 🐶
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
+
 # 🐕 Dog Breed Classifier — MLOps Pipeline
 
 [![CI](https://github.com/EizenG/dog-breed-classifier/actions/workflows/ci.yml/badge.svg)](https://github.com/EizenG/dog-breed-classifier/actions/workflows/ci.yml)
