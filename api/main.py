@@ -21,7 +21,7 @@ PRODUCTION_FEATURES_CSV = REPORTS_DIR / "production_features.csv"
 
 with open(PROJ_ROOT / "params.yaml") as f:
     _params = yaml.safe_load(f)
-BREEDS: list[str] = _params["data"]["races"]
+BREEDS: list[str] = sorted(_params["data"]["races"])
 IMG_SIZE: tuple[int, int] = tuple(_params["model"]["img_size"])
 
 model = None
